@@ -1,12 +1,12 @@
-from flask import Flask, redirect, url_for, flash, render_template, jsonify
+from flask import Flask, redirect, url_for, flash, render_template, jsonify, request
 from flask_login import login_required, logout_user , current_user, login_user
 from .config import Config
-from .models import db, login_manager , Token
+from .models import db, login_manager , Token, User
 from .oauth import blueprint
 from .cli import create_db
 from flask_migrate import Migrate
 from flask_cors import CORS
-import requests
+import requests, uuid
 
 
 app = Flask(__name__)
@@ -31,7 +31,9 @@ def logout():
         db.session.commit()
     logout_user()
     flash("You have logged out")
-    return redirect("https://localhost:3000/")
+    return jsonify({
+        'success':True,
+    })
     
 
 @app.route("/")
@@ -41,48 +43,62 @@ def index():
 
 @app.route('/login',methods=[ 'GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('events.home'))
     if request.method == "POST":
-        user = User(email = request.json["email"]).check_user_email(request.json["email"])
+        data = request.get_json()
+        user = User.query.filter_by(email=data['email']).first()
         if not user: 
-            flash("Your email is not registered",'warning')
-            return redirect(url_for('users.register'))
-        if user.check_password(request.json["password"]):   
+            return jsonify({
+                           "success":False,
+                "message":"No User"
+            })
+        if user.check_password(data["password"]):   
+            token = Token.query.filter_by(user_id=user.id).first()
+            if not token:
+                token = Token(user_id=user.id, uuid=str(uuid.uuid4().hex))
+                db.session.add(token)
+                db.session.commit()
             login_user(user)
-            flash("Welcome back!", "success")
-            return redirect(url_for('events.home'))
-        flash('Incorrect password, please try to login again', 'warning')
-    return render_template("views/login.html")    
+    return jsonify({
+        "success":True,
+        "user":{
+                        'user_id': current_user.id,
+
+            "name":user.name
+        },
+        "token": token.uuid
+    })
 
 @app.route('/register', methods=['POST','GET'])
 def register():
-    if current_user.is_authenticated:
-        return redirect("https://localhost:3000/")
     if request.method == 'POST' :
-        check_email = User.query.filter_by(email=request.json['email']).first() 
+        data = request.get_json()
+        check_email = User.query.filter_by(email=data['email']).first() 
         if check_email:  
-            flash('Email already taken', 'warning')
-            return redirect(url_for('https://localhost:3000/login')) 
-        if request.json['password'] != request.json['checkpassword']:
-            flash('The passwords entered do not match', 'warning')
-            return redirect(url_for('users.register'))
-        new_user = User(name=request.json['name'],  
-                        email=request.json['email'],
+            return jsonify({
+                "success":False,
+                "message":"Email taken"
+            })
+       
+        new_user = User(name=data['name'],  
+                        email=data['email'],
                         )
-        new_user.generate_password(request.json['password'])  
+        new_user.generate_password(data['password'])  
         db.session.add(new_user) 
         db.session.commit() 
-        login_user(new_user) 
-        flash('Successfully created an account and logged in', 'success')
-        return redirect(url_for('https://localhost:3000/')) # and redirect user to our root
-    return render_template('https://localhost:3000/') 
+    return jsonify({
+                    "success":True
+    }) 
+        # and redirect user to our root
 
-@app.route('/getuserinfo', methods =['GET','POST']) 
+@app.route('/getuserinfo', methods =['GET']) 
 @login_required
 def getuser():  
+    print('adsadasdasdasdsa')
     return jsonify({
         'success': True,
-        'user_id': current_user.id,
-        'user_name' :current_user.name
+        'user':{
+            'user_id': current_user.id,
+        'name' :current_user.name
+        },
+        'token' : current_user.token[0].uuid
     })
