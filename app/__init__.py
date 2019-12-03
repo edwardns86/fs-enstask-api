@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, flash, render_template, jsonify, request
 from flask_login import login_required, logout_user , current_user, login_user
 from .config import Config
-from .models import db, login_manager , Token, User
+from .models import db, login_manager , Token, User ,Project
 from .oauth import blueprint
 from .cli import create_db
 from flask_migrate import Migrate
@@ -78,7 +78,6 @@ def register():
                 "success":False,
                 "message":"Email taken"
             })
-       
         new_user = User(name=data['name'],  
                         email=data['email'],
                         )
@@ -93,7 +92,6 @@ def register():
 @app.route('/getuserinfo', methods =['GET']) 
 @login_required
 def getuser():  
-    print('adsadasdasdasdsa')
     return jsonify({
         'success': True,
         'user':{
@@ -102,3 +100,20 @@ def getuser():
         },
         'token' : current_user.token[0].uuid
     })
+
+@app.route('/newproject', methods =['POST'])
+# @login_required
+def createproject():
+    if request.method == 'POST' :
+        data = request.get_json()
+        new_project = Project (
+            title = data['title'],
+            description = data['description'],
+            startdate = data['startdate'],
+            enddate = data['enddate']
+        )
+        db.session.add(new_project) 
+        db.session.commit() 
+    return jsonify({
+                    "success":True
+    }) 

@@ -19,7 +19,6 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
-
 class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String(256), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
@@ -30,6 +29,22 @@ class Token(db.Model):
     uuid = db.Column(db.String, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     user = db.relationship(User, backref='token')
+
+
+
+class Project(db.Model):
+    __tablename__ = 'projects'
+    id = db.Column(db.Integer, primary_key=True)  
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    title = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, server_default="") 
+    startdate = db.Column(db.DateTime, server_default=db.func.now())
+    enddate = db.Column(db.DateTime, nullable=False)   
+
+    
+    # tasks
+    # 
+
 
 
 # setup login manager
