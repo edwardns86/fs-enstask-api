@@ -117,3 +117,27 @@ def createproject():
     return jsonify({
                     "success":True
     }) 
+
+@app.route('/getprojects')
+
+def getprojects():
+    projects= Project.query.all()
+    jsonised_object_list = []
+    for project in projects:
+        jsonised_object_list.append(project.as_dict())
+    return jsonify(jsonised_object_list)
+                    
+                    
+    
+
+@app.route('/excerpts', methods= ['GET', 'POST'])
+def getexcerpts():
+    excerpts = Excerpt.query.all()
+    jsonized_excerpt_objects_list = []
+    for excerpt in excerpts:
+        jsonized_excerpt_objects_list.append(excerpt.as_dict())
+
+    return jsonify(jsonized_excerpt_objects_list)
+
+if __name__ == "__main__":
+    app.run(debug=True)

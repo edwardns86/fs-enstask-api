@@ -41,9 +41,8 @@ class Project(db.Model):
     startdate = db.Column(db.DateTime, server_default=db.func.now())
     enddate = db.Column(db.DateTime, nullable=False)   
 
-    
-    # tasks
-    # 
+    def as_dict(self):
+        return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
 
 
 
