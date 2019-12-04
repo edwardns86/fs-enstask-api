@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for, flash, render_template, jsonify, request
 from flask_login import login_required, logout_user , current_user, login_user
 from .config import Config
-from .models import db, login_manager , Token, User ,Project
+from .models import db, login_manager , Token, User ,Project, Task
 from .oauth import blueprint
 from .cli import create_db
 from flask_migrate import Migrate
@@ -102,7 +102,7 @@ def getuser():
     })
 
 @app.route('/newproject', methods =['POST'])
-# @login_required
+
 def createproject():
     if request.method == 'POST' :
         data = request.get_json()
@@ -119,7 +119,7 @@ def createproject():
     }) 
 
 @app.route('/getprojects')
-
+@login_required
 def getprojects():
     projects= Project.query.all()
     jsonised_object_list = []
@@ -127,17 +127,53 @@ def getprojects():
         jsonised_object_list.append(project.as_dict())
     return jsonify(jsonised_object_list)
                     
-                    
-    
+@app.route('/project/<id>')
+@login_required
+def showproject(id):
+    project = Project.query.filter_by(id=id).first()
+    print("PROJECT: ", project)
+    tasks = Task.query.filter_by(project_id=project.id).all()
+    jsonised_object_list = []
+    if not tasks:
+        jsonised_object_list.append(project.as_dict())
+        return jsonify({
+            'success': True,
+            'project' :{
+                'id': project.id,
+                'title': project.title,
+                'description': project.description
+            }})
+    for task in tasks :
+        jsonised_object_list.append(task.as_dict())
+    return jsonify({
+            'success': True,
+            'project': {
+                'id': project.id,
+                'title': project.title,
+                'description': project.description,
+            },
+            'tasks': jsonised_object_list
+               }) 
 
-@app.route('/excerpts', methods= ['GET', 'POST'])
-def getexcerpts():
-    excerpts = Excerpt.query.all()
-    jsonized_excerpt_objects_list = []
-    for excerpt in excerpts:
-        jsonized_excerpt_objects_list.append(excerpt.as_dict())
-
-    return jsonify(jsonized_excerpt_objects_list)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/tasks', methods =['POST'])
+@login_required
+def createtask():
+    id = request.get_json()['id']
+    if request.method == 'POST' :
+        data = request.get_json()
+        print(data)
+        new_task = Task (
+            title = data['input']['title'],
+            description = data['input']['description'],
+            startdate = data['input']['startdate'],
+            enddate = data['input']['enddate'],
+            user_id = current_user.id
+        )
+        project = Project.query.filter_by(id = id).first() 
+        if project :
+            new_task.project_id = project.id
+        db.session.add(new_task) 
+        db.session.commit() 
+    return jsonify({
+                    "success":True
+    }) 
