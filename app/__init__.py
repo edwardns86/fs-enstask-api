@@ -126,6 +126,16 @@ def getprojects():
     for project in projects:
         jsonised_object_list.append(project.as_dict())
     return jsonify(jsonised_object_list)
+
+
+@app.route('/getusers')
+@login_required
+def getuserss():
+    users= User.query.all()
+    jsonised_object_list = []
+    for user in users:
+        jsonised_object_list.append(user.as_dict())
+    return jsonify(jsonised_object_list)
                     
 @app.route('/project/<id>')
 @login_required
@@ -133,6 +143,7 @@ def showproject(id):
     project = Project.query.filter_by(id=id).first()
     print("PROJECT: ", project)
     tasks = Task.query.filter_by(project_id=project.id).all()
+    
     jsonised_object_list = []
     if not tasks:
         jsonised_object_list.append(project.as_dict())
@@ -144,7 +155,13 @@ def showproject(id):
                 'description': project.description
             }})
     for task in tasks :
-        jsonised_object_list.append(task.as_dict())
+        # import code; code.interact(local=dict(globals(), **locals()))
+        if task.assigned_id:
+            new_task = task.as_dict()
+            new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()
+        else:
+            new_task = task.as_dict()
+        jsonised_object_list.append(new_task)
     return jsonify({
             'success': True,
             'project': {
@@ -159,6 +176,7 @@ def showproject(id):
 @login_required
 def createtask():
     id = request.get_json()['id']
+    
     if request.method == 'POST' :
         data = request.get_json()
         print(data)
@@ -167,7 +185,8 @@ def createtask():
             description = data['input']['description'],
             startdate = data['input']['startdate'],
             enddate = data['input']['enddate'],
-            user_id = current_user.id
+            user_id = current_user.id,
+            assigned_id = data['input']['assigned_id'],
         )
         project = Project.query.filter_by(id = id).first() 
         if project :
@@ -189,6 +208,8 @@ def edittask():
         print(data)
         task.title = data['input']['title'],
         task.description = data['input']['description'],
+        task.status = data['input']['status'],
+        task.assigned_id = data['input']['assigned_id']
         task.startdate = data['startDate'],
         task.enddate = data['endDate'],
         db.session.commit()

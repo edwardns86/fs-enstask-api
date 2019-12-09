@@ -12,13 +12,16 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(300)) 
     name = db.Column(db.String(100), nullable = False)
     surname = db.Column(db.String(100))
-    # tasks = db.relationship('tasks', backref="user") THIS ONE ALSO ISSUES 
-
+    assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_id', backref=db.backref('assigned_user', lazy=True))
+    created_tasks = db.relationship('Task', foreign_keys='Task.user_id', backref=db.backref('usertask_id', lazy=True))
     def generate_password(self, password):
         self.password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+    def as_dict(self):
+        return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
 class OAuth(OAuthConsumerMixin, db.Model):
     provider_user_id = db.Column(db.String(256), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
@@ -54,6 +57,9 @@ class Task(db.Model):
     # weekly = db.Column(db.Boolean, server_default=False)
     project_id= db.Column(db.Integer, db.ForeignKey('projects.id'))
     user_id= db.Column(db.Integer, db.ForeignKey(User.id))
+    assigned_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    status= db.Column(db.String, server_default='Open')
+    
     
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
