@@ -153,7 +153,7 @@ def showproject(id):
                 'description': project.description,
             },
             'tasks': jsonised_object_list
-               }) 
+            }) 
 
 @app.route('/tasks', methods =['POST'])
 @login_required
@@ -176,4 +176,24 @@ def createtask():
         db.session.commit() 
     return jsonify({
                     "success":True
+    }) 
+
+@app.route('/edittasks', methods = ['POST'])
+@login_required
+def edittask():
+    
+    id = request.get_json()['id']
+    task = Task.query.filter_by(id=id).first()
+    if request.method == 'POST' :
+        data = request.get_json()
+        print(data)
+        task.title = data['input']['title'],
+        task.description = data['input']['description'],
+        task.startdate = data['startDate'],
+        task.enddate = data['endDate'],
+        db.session.commit()
+    return jsonify({
+                    "success":True
+
+
     }) 

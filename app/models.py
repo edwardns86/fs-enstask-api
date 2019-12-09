@@ -3,7 +3,6 @@ from flask_login import LoginManager, UserMixin, login_required
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-
 db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
@@ -30,8 +29,6 @@ class Token(db.Model):
     uuid = db.Column(db.String, unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     user = db.relationship(User, backref='token')
-
-
 
 class Project(db.Model):
     __tablename__ = 'projects'
