@@ -127,6 +127,16 @@ def getprojects():
         jsonised_object_list.append(project.as_dict())
     return jsonify(jsonised_object_list)
 
+@app.route('/gettasks')
+@login_required
+def gettasks():
+    tasks= Task.query.filter_by(assigned_id=current_user.id).all()
+    jsonised_object_list = []
+    for task in tasks:
+        jsonised_object_list.append(task.as_dict())
+    return jsonify(jsonised_object_list)
+
+
 
 @app.route('/getusers')
 @login_required
