@@ -133,8 +133,16 @@ def gettasks():
     tasks= Task.query.filter_by(assigned_id=current_user.id).all()
     jsonised_object_list = []
     for task in tasks:
-        jsonised_object_list.append(task.as_dict())
-    return jsonify(jsonised_object_list)
+        if task.assigned_id:
+            new_task = task.as_dict()
+            new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()
+        else:
+            new_task = task.as_dict()
+        jsonised_object_list.append(new_task)
+    return jsonify({
+            'success': True,
+            'tasks': jsonised_object_list
+            }) 
 
 
 
