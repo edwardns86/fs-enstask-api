@@ -124,7 +124,14 @@ def getprojects():
     projects= Project.query.all()
     jsonised_object_list = []
     for project in projects:
-        jsonised_object_list.append(project.as_dict())
+        new_project = project.as_dict()
+        tasks = Task.query.filter_by(project_id= project.id).all()
+        new_project['task'] = []
+        for task in tasks:
+            new_project['task'].append(task.as_dict())
+        
+        jsonised_object_list.append(new_project)
+    # for project in projects :
     return jsonify(jsonised_object_list)
 
 @app.route('/gettasks')
@@ -133,11 +140,14 @@ def gettasks():
     tasks= Task.query.filter_by(assigned_id=current_user.id).all()
     jsonised_object_list = []
     for task in tasks:
-        if task.assigned_id:
+        if task.assigned_id and task.project_id:
             new_task = task.as_dict()
             new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()
+            new_task['project'] = Project.query.filter_by(id=task.project_id).all()[0].as_dict()
         else:
             new_task = task.as_dict()
+            new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()  
+            new_task['project'] = {'title': 'No Project Assigned'}
         jsonised_object_list.append(new_task)
     return jsonify({
             'success': True,
@@ -161,7 +171,6 @@ def showproject(id):
     project = Project.query.filter_by(id=id).first()
     print("PROJECT: ", project)
     tasks = Task.query.filter_by(project_id=project.id).all()
-    
     jsonised_object_list = []
     if not tasks:
         jsonised_object_list.append(project.as_dict())
@@ -173,12 +182,14 @@ def showproject(id):
                 'description': project.description
             }})
     for task in tasks :
-        # import code; code.interact(local=dict(globals(), **locals()))
-        if task.assigned_id:
+        if task.assigned_id and task.project_id:
             new_task = task.as_dict()
             new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()
+            new_task['project'] = Project.query.filter_by(id=task.project_id).all()[0].as_dict()
         else:
             new_task = task.as_dict()
+            new_task['assignee'] = User.query.filter_by(id=task.assigned_id).all()[0].as_dict()  
+            new_task['project'] = {'title': 'No Project Assigned'}
         jsonised_object_list.append(new_task)
     return jsonify({
             'success': True,
@@ -205,6 +216,7 @@ def createtask():
             enddate = data['input']['enddate'],
             user_id = current_user.id,
             assigned_id = data['input']['assigned_id'],
+            project_id = data['input']['project_id']
         )
         project = Project.query.filter_by(id = id).first() 
         if project :
@@ -230,9 +242,20 @@ def edittask():
         task.assigned_id = data['input']['assigned_id']
         task.startdate = data['startDate'],
         task.enddate = data['endDate'],
+        task.project_id = data['input']['project_id']
         db.session.commit()
     return jsonify({
                     "success":True
+    }) 
 
-
+@app.route('/deletetasks', methods = ['POST'])
+@login_required
+def deletetask():
+    id = request.get_json()['id']
+    task = Task.query.filter_by(id=id).first()
+    if request.method == 'POST' :
+        task.status = "Archived"
+        db.session.commit()
+    return jsonify({
+                    "success":True
     }) 

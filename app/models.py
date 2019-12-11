@@ -41,8 +41,7 @@ class Project(db.Model):
     description = db.Column(db.String, server_default="") 
     startdate = db.Column(db.DateTime, server_default=db.func.now())
     enddate = db.Column(db.DateTime, nullable=False)   
-
-    # tasks = db.relationship("tasks", backref="project")  THIS ONE ERROR 
+    tasks = db.relationship('Task', foreign_keys='Task.project_id', backref=db.backref("project", lazy=True))
 
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
