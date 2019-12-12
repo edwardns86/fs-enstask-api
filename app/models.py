@@ -63,6 +63,8 @@ class Task(db.Model):
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
 
+
+
 # setup login manager
 login_manager = LoginManager()
 
