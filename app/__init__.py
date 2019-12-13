@@ -204,7 +204,7 @@ def showproject(id):
 @app.route('/tasks', methods =['POST'])
 @login_required
 def createtask():
-    id = request.get_json()['id']
+    # id = request.get_json()['id'] ALSO PART OF AUTO DETERMINING THE PROJEDCT ID FOR A TASK, NOW SELECTED ALL TIMES FROM FRONT END FORM
     
     if request.method == 'POST' :
         data = request.get_json()
@@ -218,9 +218,9 @@ def createtask():
             assigned_id = data['input']['assigned_id'],
             project_id = data['input']['project_id']
         )
-        project = Project.query.filter_by(id = id).first() 
-        if project :
-            new_task.project_id = project.id
+        # project = Project.query.filter_by(id = id).first() THIS CODE WAS TO CREATE A NEW TASK JUST FOR THIS PROJECT 
+        # if project :
+        #     new_task.project_id = project.id
         db.session.add(new_task) 
         db.session.commit() 
     return jsonify({
