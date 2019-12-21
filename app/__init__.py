@@ -179,7 +179,9 @@ def showproject(id):
             'project' :{
                 'id': project.id,
                 'title': project.title,
-                'description': project.description
+                'description': project.description,
+                'startdate': project.startdate,
+                'enddate': project.enddate
             }})
     for task in tasks :
         if task.assigned_id and task.project_id:
@@ -197,6 +199,8 @@ def showproject(id):
                 'id': project.id,
                 'title': project.title,
                 'description': project.description,
+                'startdate': project.startdate,
+                'enddate': project.enddate
             },
             'tasks': jsonised_object_list
             }) 
@@ -235,7 +239,6 @@ def edittask():
     task = Task.query.filter_by(id=id).first()
     if request.method == 'POST' :
         data = request.get_json()
-        print(data)
         task.title = data['input']['title'],
         task.description = data['input']['description'],
         task.status = data['input']['status'],
@@ -255,6 +258,23 @@ def deletetask():
     task = Task.query.filter_by(id=id).first()
     if request.method == 'POST' :
         task.status = "Archived"
+        db.session.commit()
+    return jsonify({
+                    "success":True
+    }) 
+
+@app.route('/editprojects', methods = ['POST'])
+@login_required
+def editprojects():
+    id = request.get_json()['id']
+    project = Project.query.filter_by(id=id).first()
+    if request.method == 'POST' :
+        data = request.get_json()
+        print(data)
+        project.title = data['input']['title'],
+        project.description = data['input']['description'],
+        project.startdate = data['startDate'],
+        project.enddate = data['endDate'],
         db.session.commit()
     return jsonify({
                     "success":True
