@@ -42,6 +42,7 @@ class Project(db.Model):
     startdate = db.Column(db.DateTime, server_default=db.func.now())
     enddate = db.Column(db.DateTime, nullable=False)   
     tasks = db.relationship('Task', foreign_keys='Task.project_id', backref=db.backref("project", lazy=True))
+    status= db.Column(db.String, server_default='Open')
 
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
@@ -53,7 +54,6 @@ class Task(db.Model):
     description = db.Column(db.String, server_default="") 
     startdate = db.Column(db.DateTime, server_default=db.func.now())
     enddate = db.Column(db.DateTime, nullable=False)  
-    # weekly = db.Column(db.Boolean, server_default=False)
     project_id= db.Column(db.Integer, db.ForeignKey('projects.id'))
     user_id= db.Column(db.Integer, db.ForeignKey(User.id))
     assigned_id = db.Column(db.Integer, db.ForeignKey(User.id))
@@ -62,8 +62,6 @@ class Task(db.Model):
     
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in  self.__table__.columns}
-
-
 
 # setup login manager
 login_manager = LoginManager()

@@ -275,6 +275,7 @@ def editprojects():
         project.description = data['input']['description'],
         project.startdate = data['startDate'],
         project.enddate = data['endDate'],
+        project.status = data['input']['status'],
         db.session.commit()
     return jsonify({
                     "success":True
