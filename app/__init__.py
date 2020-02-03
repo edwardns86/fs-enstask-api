@@ -181,7 +181,8 @@ def showproject(id):
                 'title': project.title,
                 'description': project.description,
                 'startdate': project.startdate,
-                'enddate': project.enddate
+                'enddate': project.enddate,
+                'status': project.status
             }})
     for task in tasks :
         if task.assigned_id and task.project_id:
@@ -200,7 +201,8 @@ def showproject(id):
                 'title': project.title,
                 'description': project.description,
                 'startdate': project.startdate,
-                'enddate': project.enddate
+                'enddate': project.enddate,
+                'status':project.status
             },
             'tasks': jsonised_object_list
             }) 
@@ -271,11 +273,11 @@ def editprojects():
     if request.method == 'POST' :
         data = request.get_json()
         print(data)
-        project.title = data['input']['title'],
-        project.description = data['input']['description'],
+        project.title = data['projectInput']['title'],
+        project.description = data['projectInput']['description'],
         project.startdate = data['startDate'],
         project.enddate = data['endDate'],
-        project.status = data['input']['status'],
+        project.status = data['projectInput']['status'],
         db.session.commit()
     return jsonify({
                     "success":True
