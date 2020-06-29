@@ -106,6 +106,8 @@ def getuser():
 def createproject():
     if request.method == 'POST' :
         data = request.get_json()
+        
+        
         new_project = Project (
             title = data['title'],
             description = data['description'],
